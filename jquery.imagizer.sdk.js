@@ -106,13 +106,9 @@
             var called = false;
 
             $.each(images, function () {
-                var width = $(this).attr("data-width");
-                var height = $(this).attr("data-height");
-                var uri = $(this).attr("data-src");
-
                 var deferred = new $.Deferred();
 
-                loadImage($(this), width, height, $(this).hasClass("autocrop"), $(this).hasClass("x2"), uri, function () {
+                loadImage($(this), function () {
                     deferred.resolve();
                 });
 
@@ -135,8 +131,14 @@
             }, 10000);
         }
 
-        function loadImage(image, width, height, autocrop, retina, uri, callback) {
+        function loadImage(image, callback) {
             var params;
+
+            var width = image.attr("data-width");
+            var height = image.attr("data-height");
+            var uri = image.attr("data-src");
+            var devicePixels = image.attr("data-device-pixels");
+            var autoCrop = image.hasClass("auto-crop");
 
             if (width && height) {
                 params = "/" + width + "x" + height;
@@ -152,11 +154,14 @@
                 params += "q" + quality;
             }
 
-            if (autocrop) {
+            if (autoCrop) {
                 params += "/c"
             }
 
-            if (isRetinaDisplay()) {
+            if (devicePixels) {
+                params += "/x" + devicePixels;
+
+            } else if (settings.detect_device_pixels && isRetinaDisplay()) {
                 if (!window.devicePixelRatio) {
                     window.devicePixelRatio = 2;
                 }
@@ -167,7 +172,7 @@
             uri = params + uri;
 
             if (settings.use_placeholder) {
-                if (width && height && autocrop) {
+                if (width && height && autoCrop) {
                     $(image).attr("width", width);
                     $(image).attr("height", height);
 
